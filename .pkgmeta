@@ -1,1 +1,10 @@
+# Builds the Stacked Raid Groups release zip (BigWigsMods/packager).
+# The repo's root is the addon's own folder.
 package-as: StackedRaidGroups
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - CHANGELOG.md
