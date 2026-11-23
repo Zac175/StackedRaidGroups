@@ -1,0 +1,7 @@
+## Interface: 11509, 20506, 16001
+## Title: Stacked Raid Groups
+## Notes: Wraps the new (Edit Mode) raid frames' separate groups into rows, e.g. Groups 5-8 stacked under Groups 1-4. Type /srg for options.
+## Version: 1.1.4
+## SavedVariables: StackedRaidGroupsDB
+
+StackedRaidGroups.lua

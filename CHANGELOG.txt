@@ -1,0 +1,119 @@
+Stacked Raid Groups - Changelog
+===============================
+
+v1.1.4 (2026-11-22)
+- WoW Forever (1.60.1) support. Forever runs the same Edit Mode raid
+  frames (checked against Blizzard's published 1.60.1 UI source: the
+  group frames, the flow layout and the Edit Mode raid settings are
+  the same code), with three differences this version accounts for:
+  * its raid container also re-arranges on the game's LFG update
+    event. The combat guard now holds that one too, so a mid-fight
+    LFG update cannot snap the grid back to one line. It is only
+    touched on a client whose container listens for it - nothing
+    changes on Classic Era or Burning Crusade Anniversary.
+  * its raid container re-measures itself one frame after every
+    layout. With "resize container" on, the grid's size is put back
+    in that same frame.
+  * the game can hide a frame's size, position or protection from
+    addons there. A layout pass that meets a hidden value is skipped
+    and retried instead of raising an error.
+- The post-combat "anything still missing" note asks the game itself
+  whether Main Tank / Main Assist frames are shown at all (Forever
+  hides them in matchmade raids without role requirements).
+- Safety net on every client: a layout pass that fails for any reason
+  is reported once in chat and no longer repeats several times a
+  second; /srg status shows the error text and the game build.
+- The shared TOC lists WoW Forever's interface number (16001).
+- No change to how the layout looks or behaves on Classic Era or
+  Burning Crusade Anniversary.
+
+v1.1.3 (2026-08-08)
+- Burning Crusade Anniversary (2.5.6) support made first-class. The
+  addon now ships client-specific TOC files - StackedRaidGroups_
+  Vanilla.toc (Interface 11509) and StackedRaidGroups_TBC.toc
+  (Interface 20506) - alongside the shared fallback TOC, so both
+  clients mark the addon compatible and addon managers (CurseForge,
+  WowUp) detect both game versions from one package.
+- No gameplay code changes: 2.5.6 runs the same modern raid-frame UI
+  code as 1.15.9 (verified against Blizzard's published 2.5.6 UI
+  source - the compact raid frame container/layout code is identical),
+  so the Lua works unchanged on both clients.
+- README: per-client install instructions; the one-time update note in
+  chat now mentions dual-client support.
+
+v1.1.2 (2026-08-06)
+- Roster changes made DURING combat are now fully reflected the moment
+  combat drops, instead of waiting for the game's next roster event:
+  the addon reconciles group visibility itself at combat end (shows an
+  existing group frame that players moved into mid-fight - its members
+  were kept current the whole time by the group's own handler - and
+  hides a group that emptied mid-fight). Group frames are unprotected,
+  so this is legal and taint-free out of combat.
+- The layout pass now also picks up any shown group frame missing from
+  the game's (stale) internal flow list, so such a group can never be
+  left overlapping the grid.
+- Still deferred to the game's next pass (cannot be created by an
+  addon): brand-new pet frames, Main Tank/Assist changes, and a group
+  frame that has never existed this session.
+- Harness: added no-post-combat-event scenarios (hidden group refilled
+  mid-fight; group emptied mid-fight) - 26 checks pass under both
+  engine behaviors.
+
+v1.1.1 (2026-08-06)
+- Fixed: the layout could stay broken after combat ended and never
+  recover until /reload. Cause: when the engine rejects an in-combat
+  frame move it can raise a hard Lua error (secure anchoring
+  restriction) instead of silently ignoring the call; the error aborted
+  a layout pass halfway and left an internal "layout in progress" flag
+  stuck, which silently disabled every future layout pass - including
+  the combat-end repair. All frame-move attempts are now error-isolated
+  (a rejected section is treated as combat-deferred), the watchdog
+  self-heals the stuck flag, and the combat-end repair is ordered so
+  nothing can prevent it from running. This bug predates the combat
+  guard and could also freeze v1.0.0.
+- Verified with an offline test harness that simulates the game's event
+  dispatch, combat lockdown, and both engine behaviors (silent block
+  and hard error) across login, mid-combat logoffs, group emptying,
+  join-into-hidden-group pass-through, and combat-end restore.
+
+v1.1.0 (2026-08-06)
+- Combat guard (new, on by default): mid-combat roster changes - e.g.
+  a player logging off during a pull - no longer snap the raid frames
+  back to the game's single-line layout. While you are in combat the
+  addon unregisters the container's two re-flow trigger events
+  (GROUP_ROSTER_UPDATE / UNIT_PET) on the container frame only; the
+  group frames keep updating their own members through their own secure
+  handlers, so offline greying, leavers hiding, and joiners appearing in
+  visible groups all still work. Everything re-syncs at combat end.
+  Tradeoff: frames that would need to be CREATED mid-fight (brand-new
+  pets, MT/MA changes) appear after combat instead; if a player joins a
+  group with no frame on screen, one roster event is deliberately let
+  through so the game can build it, then the guard re-arms.
+  Toggle: /srg guard on|off, or the options window (/srg).
+- The engine block probe (whether in-combat group moves are allowed) is
+  now reset every fight instead of once per session.
+- Options window: new "Combat guard" toggle under General, with a
+  tooltip explaining exactly what the guard does and its tradeoffs.
+- /srg guard (no argument) prints the same explanation in chat, and a
+  one-time chat note announces the new behavior after updating.
+- README: combat stability section rewritten; stale command lists
+  removed.
+
+v1.0.0 (2026-07-22) - Initial release
+- Stacks the default raid frames' separate groups into rows (e.g.
+  Groups 5-8 directly under Groups 1-4) instead of one long line, for
+  the new Edit Mode raid frames introduced in patch 1.15.9 / 2.5.6.
+  The frames themselves are untouched - position only.
+- Groups per row (1-8), fill order (Groups 1-4 on top, or classic
+  1,3,5,7 on top with /srg fill columns), spacing, and empty-group
+  handling.
+- Main Tank / Assist and pet sections placeable on any side of the
+  grid, with an option to hide the MT target mini-frames.
+- Options window (/srg), chat commands for everything (/srg help),
+  diagnostics for bug reports (/srg status), a combat-lock heads-up,
+  and a login message (both toggleable).
+- Known limitation (engine rule for all addons): if the game re-lays
+  out its frames during combat (roster changes, pet frames, MT target
+  churn), the single-line layout can show until combat ends, then the
+  grid restores instantly. See the README for the combat stability
+  checklist.
