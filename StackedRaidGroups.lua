@@ -1,5 +1,5 @@
 --[[---------------------------------------------------------------------------
-	StackedRaidGroups  v1.1.5
+	StackedRaidGroups  v1.1.6
 
 	Wraps the new (Edit Mode / patch 1.15.9, 2.5.6 and WoW Forever) raid frames' separate groups
 	into rows, e.g. Groups 1-4 on the first row with Groups 5-8 stacked
@@ -11,6 +11,9 @@
 
 	/srg          -> open the options window
 	/srg help     -> list chat commands
+
+	v1.1.6
+	- The website has a new address: zacaddons.com.
 
 	v1.1.5
 	- A link to the addon's website for bug reports and suggestions:
@@ -53,7 +56,7 @@
 -----------------------------------------------------------------------------]]
 
 local PREFIX = "|cff33ff99StackedRaidGroups|r: "
-local VERSION = "1.1.5"
+local VERSION = "1.1.6"
 
 local POSITIONS = { "TOP", "BOTTOM", "LEFT", "RIGHT" }
 local POSITION_LABELS = { TOP = "Top", BOTTOM = "Bottom", LEFT = "Left", RIGHT = "Right" }
@@ -1488,7 +1491,7 @@ SLASH_STACKEDRAIDGROUPS2 = "/stackedraidgroups"
 -- ============================================================
 local ShowSite   -- ShowSite("report" | "suggest" | "site") -> the link
 do -- SITE LINK
-	local SITE = "https://zac175.github.io/"
+	local SITE = "https://zacaddons.com/"
 	local ADDON_ID = "stacked"
 	local DIALOG = "STACKEDRAIDGROUPS_SITE"
 	local TITLES = {

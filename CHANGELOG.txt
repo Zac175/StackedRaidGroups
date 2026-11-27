@@ -1,6 +1,11 @@
 Stacked Raid Groups - Changelog
 ===============================
 
+v1.1.6 (2026-11-27)
+- The website has a new address: zacaddons.com. /srg report,
+  /srg suggest, /srg site and the two buttons in the options window
+  now open it.
+
 v1.1.5 (2026-11-25)
 - The addon has a website for bug reports and feature suggestions:
   /srg report and /srg suggest give you a link with your version and

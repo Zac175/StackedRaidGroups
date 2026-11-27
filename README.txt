@@ -1,5 +1,5 @@
 ===============================================================================
- Stacked Raid Groups                                                  v1.1.5
+ Stacked Raid Groups                                                  v1.1.6
 ===============================================================================
 
 Stack the new raid frames' groups into rows - e.g. Groups 5-8 directly
