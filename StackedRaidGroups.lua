@@ -1,5 +1,5 @@
 --[[---------------------------------------------------------------------------
-	StackedRaidGroups  v1.1.4
+	StackedRaidGroups  v1.1.5
 
 	Wraps the new (Edit Mode / patch 1.15.9, 2.5.6 and WoW Forever) raid frames' separate groups
 	into rows, e.g. Groups 1-4 on the first row with Groups 5-8 stacked
@@ -11,6 +11,11 @@
 
 	/srg          -> open the options window
 	/srg help     -> list chat commands
+
+	v1.1.5
+	- A link to the addon's website for bug reports and suggestions:
+	  /srg report, /srg suggest, /srg site, and two buttons in the
+	  options window.
 
 	v1.1.4
 	- WoW Forever (1.60.1) support. Its raid frames are the same Edit Mode
@@ -48,7 +53,7 @@
 -----------------------------------------------------------------------------]]
 
 local PREFIX = "|cff33ff99StackedRaidGroups|r: "
-local VERSION = "1.1.4"
+local VERSION = "1.1.5"
 
 local POSITIONS = { "TOP", "BOTTOM", "LEFT", "RIGHT" }
 local POSITION_LABELS = { TOP = "Top", BOTTOM = "Bottom", LEFT = "Left", RIGHT = "Right" }
@@ -1358,7 +1363,17 @@ local function CreateOptionsUI()
 		function(v) db.pets.offsetX = v end); y = y - 24
 	AddNumberBox(f, R, "Offset Y", y,
 		function() return db.pets.offsetY end,
-		function(v) db.pets.offsetY = v end); y = y - 24
+		function(v) db.pets.offsetY = v end); y = y - 30
+
+	-- THE SITE: the two links as buttons (the same as /srg report and
+	-- /srg suggest: a link to copy into a browser)
+	AddHeader(f, R, "Something broken, or an idea?", y); y = y - 20
+	AddActionButton(f, R, "Report a problem", "Get the link", y, function()
+		SlashCmdList["STACKEDRAIDGROUPS"]("report")
+	end); y = y - 26
+	AddActionButton(f, R, "Suggest a feature", "Get the link", y, function()
+		SlashCmdList["STACKEDRAIDGROUPS"]("suggest")
+	end); y = y - 26
 
 	local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
 	hint:SetPoint("BOTTOMLEFT", 14, 10)
@@ -1465,6 +1480,87 @@ end)
 SLASH_STACKEDRAIDGROUPS1 = "/srg"
 SLASH_STACKEDRAIDGROUPS2 = "/stackedraidgroups"
 
+-- ============================================================
+-- THE SITE: newest version, what changed, bug reports, suggestions.
+-- An addon cannot open a link, so it is put in a box, selected, to copy.
+-- The link carries this addon, its version and the game version, so the
+-- site's form opens already filled in.
+-- ============================================================
+local ShowSite   -- ShowSite("report" | "suggest" | "site") -> the link
+do -- SITE LINK
+	local SITE = "https://zac175.github.io/"
+	local ADDON_ID = "stacked"
+	local DIALOG = "STACKEDRAIDGROUPS_SITE"
+	local TITLES = {
+		report = "Report a problem with Stacked Raid Groups",
+		suggest = "Suggest a feature for Stacked Raid Groups",
+		site = "Stacked Raid Groups: newest version and what changed",
+	}
+	local shownLink
+
+	local function Game()
+		local pid = WOW_PROJECT_ID
+		if pid == 1 then return "retail" elseif pid == 2 then return "era" elseif pid == 5 then return "tbc" elseif pid == 18 then return "forever" end
+		local build = GetBuildInfo and tonumber((select(4, GetBuildInfo()))) or 0
+		if build >= 100000 then return "retail" end
+		if build >= 20000 and build < 30000 then return "tbc" end
+		if build >= 16000 and build < 20000 then return "forever" end
+		return "era"
+	end
+
+	local function Link(kind)
+		if kind == "report" then
+			return SITE .. "#/report?addon=" .. ADDON_ID .. "&v=" .. tostring(VERSION) .. "&game=" .. Game()
+		elseif kind == "suggest" then
+			return SITE .. "#/suggest?addon=" .. ADDON_ID .. "&game=" .. Game()
+		end
+		return SITE .. "#/changelog/" .. ADDON_ID
+	end
+
+	-- (the box is called editBox or EditBox, or handed out by GetEditBox, depending on the client)
+	local function BoxOf(dialog)
+		if type(dialog) ~= "table" then return nil end
+		return dialog.editBox or dialog.EditBox or (dialog.GetEditBox and dialog:GetEditBox()) or nil
+	end
+
+	local function Fill(eb)
+		if not (eb and shownLink) then return end
+		eb:SetText(shownLink)
+		if eb.SetCursorPosition then eb:SetCursorPosition(0) end
+		eb:HighlightText()
+	end
+
+	if StaticPopupDialogs then
+		StaticPopupDialogs[DIALOG] = {
+			text = "%s\nCtrl+C to copy, then paste it into your browser.",
+			button1 = CLOSE or "Close",
+			hasEditBox = true,
+			editBoxWidth = 340,
+			OnShow = function(self)
+				local eb = BoxOf(self)
+				Fill(eb)
+				if eb and eb.SetFocus then eb:SetFocus() end
+			end,
+			-- the link cannot be typed over
+			EditBoxOnTextChanged = function(eb)
+				if shownLink and eb:GetText() ~= shownLink then Fill(eb) end
+			end,
+			EditBoxOnEnterPressed = function() StaticPopup_Hide(DIALOG) end,
+			EditBoxOnEscapePressed = function() StaticPopup_Hide(DIALOG) end,
+			timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+		}
+	end
+
+	ShowSite = function(kind)
+		if not TITLES[kind] then kind = "site" end
+		shownLink = Link(kind)
+		local shown = StaticPopup_Show and StaticPopupDialogs and StaticPopupDialogs[DIALOG] and StaticPopup_Show(DIALOG, TITLES[kind])
+		-- no box to be had (it is busy, or this client has none): the link goes to chat
+		if not shown then print("Stacked Raid Groups: " .. TITLES[kind] .. ": " .. shownLink) end
+		return shownLink
+	end
+end -- SITE LINK
+
 local function PrintHelp()
 	print(PREFIX .. "commands ( /srg with nothing opens the options window ):")
 	print("  /srg rows <1-8>            - groups per row")
@@ -1479,6 +1575,7 @@ local function PrintHelp()
 	print("  /srg guard                 - explain the combat guard (on|off toggles it)")
 	print("  /srg notice on|off  |  /srg loginmsg on|off")
 	print("  /srg container on|off | unfade | status | reset")
+	print("  /srg report | suggest | site       - a link to report a problem, suggest a feature, or see what changed")
 end
 
 SlashCmdList["STACKEDRAIDGROUPS"] = function(msg)
@@ -1713,6 +1810,12 @@ SlashCmdList["STACKEDRAIDGROUPS"] = function(msg)
 		if lastError then
 			print("  last failed pass: " .. lastError)
 		end
+	elseif cmd == "report" or cmd == "bug" then
+		ShowSite("report")
+	elseif cmd == "suggest" or cmd == "idea" then
+		ShowSite("suggest")
+	elseif cmd == "site" or cmd == "web" or cmd == "website" then
+		ShowSite("site")
 	elseif cmd == "reset" then
 		wipe(db)
 		CopyDefaults(defaults, db)

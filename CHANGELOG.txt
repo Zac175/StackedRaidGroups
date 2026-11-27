@@ -1,6 +1,13 @@
 Stacked Raid Groups - Changelog
 ===============================
 
+v1.1.5 (2026-11-25)
+- The addon has a website for bug reports and feature suggestions:
+  /srg report and /srg suggest give you a link with your version and
+  game filled in, and /srg site opens the list of what changed.
+- "Report a problem" and "Suggest a feature" in the options window do
+  the same.
+
 v1.1.4 (2026-11-22)
 - WoW Forever (1.60.1) support. Forever runs the same Edit Mode raid
   frames (checked against Blizzard's published 1.60.1 UI source: the
